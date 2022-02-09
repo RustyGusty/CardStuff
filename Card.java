@@ -1,14 +1,25 @@
 public class Card {
     private int value;
     private String suit;
+    private boolean joker;
 
     public Card(int val, String st) {
         value = val;
         suit = st;
+        joker = false;
+    }
+
+    public Card() {
+        value = 0;
+        suit = "Joker";
+        joker = true;
     }
 
     public boolean equals(Card other) {
-        return (value == other.getValue() || suit == other.getSuit());
+        if(this.isJoker() || other.isJoker()) {
+            return true;
+        }
+        return this.getValue() == other.getValue() || this.getSuit() == other.getSuit();
     }
 
     public int getValue() {
@@ -19,8 +30,15 @@ public class Card {
         return suit;
     }
 
+    public boolean isJoker() {
+        return joker;
+    }
+
     public String toString() {
         String rank = Integer.toString(getValue());
+        if(this.isJoker()) {
+            return "Joker";
+        }
         if(rank.equals("1")) {
             rank = "A";
         } else if (rank.equals("11")) {
@@ -30,6 +48,6 @@ public class Card {
         } else if (rank.equals("13")) {
             rank = "K";
         }
-        return (rank + " of " + suit);
+        return rank + " of " + suit;
     }
 }
