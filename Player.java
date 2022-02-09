@@ -1,4 +1,11 @@
+import java.util.ArrayList;
+
 public class Player {
-    System.out.println("Lalith has a funny head");
-    
+    private ArrayList<Card> hand;
+    private String name;
+
+    public Player(String name) {
+        hand = new ArrayList<>();
+        this.name = name;
+    }
 }
