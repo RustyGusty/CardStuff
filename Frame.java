@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-/** Provides basic actions for a card deck, involving a 53-card deck, a main deck, a discard pile, and  shuffling mechanics*/
+/** Provides basic actions for a card deck, involving a 53-card deck, a main deck, a discard pile, and shuffling mechanics*/
 public class Frame {
     
     private static ArrayList<Card> deck = new ArrayList<>();
@@ -8,66 +8,79 @@ public class Frame {
     //Note: These decks remain inside the Frame class and are never returned outside except through hands.
     //The top of the deck is denoted by index 0
 
-    /** Creates a new, unshuffled basic deck of 32 cards, 13 of each suit from ace to king, as well as one joker 
+    /** Creates a new, unshuffled basic deck of 52 cards, 13 of each suit from ace to king, as well as one joker 
      * and stores this into the deck instance variable
+     * 
+     * Postcondition: To the ArrayList<Card> deck is added: Ace to king of diamonds, Ace to king of clubs, Ace to
+     * king of hearts, Ace to king of spades, and a joker
      */
     public static void newDeck() {
         deck = new ArrayList<>();
-        for(int i = 1; i <= 13; i ++) {
+        for(int i = 1; i <= 13; i ++) { //Adds all diamonds (ace to king)
             deck.add(new Card(i, "diamonds"));
         }
-        for(int i = 1; i <= 13; i ++) {
+        for(int i = 1; i <= 13; i ++) { //Adds all clubs (ace to king)
             deck.add(new Card(i, "clubs"));
         }
-        for(int i = 1; i <= 13; i ++) {
+        for(int i = 1; i <= 13; i ++) { //Adds all hearts (ace to king)
             deck.add(new Card(i, "hearts"));
         }
-        for(int i = 1; i <= 13; i ++) {
+        for(int i = 1; i <= 13; i ++) { //Adds all spades (ace to king)
             deck.add(new Card(i, "spades"));
         }
-        deck.add(new Card());
+        deck.add(new Card()); //Adds a joker
     }
 
-    /** Replaces the instance variable deck with a shuffled version*/
+    /** Replaces the instance variable deck with a shuffled version
+     * 
+     * Postcondition: the instance variable deck is randomly shuffled
+    */
     public static void shuffle() {
         int index;
-        ArrayList<Card> oldDeck = copyDeck();
-        while(oldDeck.size() > 0) {
-            index = (int) (Math.random() * oldDeck.size());
+        ArrayList<Card> oldDeck = copyDeck(); //Creates a copy of the initial deck
+        deck = new ArrayList<>(); //Resets the old deck
+        while(oldDeck.size() > 0) { //The cards in the copied deck are added one by one to the instance variable deck in a random order 
+            index = (int) (Math.random() * oldDeck.size()); //Generates a random index in the range of the oldDeck
             deck.add(oldDeck.remove(index));
         }
     }
 
     /** Creates and returns a copy of the instance variable deck
      * 
-     * @return - A copy of the current deck
+     * @return newDeck - A copy of the current deck
      */
     private static ArrayList<Card> copyDeck() {
         ArrayList<Card> newDeck = new ArrayList<>();
-        for(int i = 0; i < deck.size(); i++) {
+        for(int i = 0; i < deck.size(); i++) { //The elements of the instance variable deck are added in the same order to the newDeck
             newDeck.add(deck.get(i));
         }
-        return deck;
+        return newDeck;
     }
 
     /** Gives 1 player the specified number of cards from the top of the deck; if there are not enough cards to drawm from the 
-     * main deck, reshuffles the discard pile into the main deck and continues drawing.
+     * main deck, reshuffles the discard pile into the main deck and continues drawing. Returns the cards drawn in an ArrayList
      * 
      * @param count -  int variable to specify the number of cards for that player to draw.
      * @param player - Player variable to denote who draws the cards.
+     * @return cardsDrawn - ArrayList<Card> variable that contains all the cards drawn.
      * 
      * Precondition: count <= deck.size + discard.size.
      * Postcondition: The top count cards are removed from the deck, and the ArrayList<Card> instance variable hand belonging to 
      * the specified Player object receives the removed cards. If not enough cards exist in the main deck, discardPile is reshuffled and
-     * replaces the deck until drawing completes.
+     * replaces the deck until drawing completes. An ArrayList<Card> containing all the cards drawn is returned.
     */
-    public static void draw(int count, Player player){
+    public static ArrayList<Card> draw(int count, Player player){
+        Card temp;
+        ArrayList<Card> cardsDrawn = new ArrayList<>();
         for(int i = 0; i < count; i++) {
-            if(deck.isEmpty()) {
+            if(deck.isEmpty()) { //If the deck is empty, shuffle and use the discard pile instead (added to the main deck)
                 returnDiscard();
             }
-            player.getHand().add(deck.remove(0));
+            temp = deck.remove(0);
+            player.getHand().add(temp);
+            cardsDrawn.add(temp);
         }
+        return cardsDrawn;
     }
 
     /** Deals the specified number of cards to each player, giving each player 1 card from the
@@ -85,7 +98,7 @@ public class Frame {
     */
     public static void deal(int count, ArrayList<Player> players) {
         for(int i = 0; i < count; i++) {
-            for(int j = 0; j < players.size(); j++) {
+            for(int j = 0; j < players.size(); j++) { 
                 if(deck.isEmpty()) {
                     returnDiscard();
                 }
@@ -94,13 +107,15 @@ public class Frame {
         }
     }
 
-    /** Places the given card into the discard pile
-     * @param discardedCard - a Card variable of the card to be discarded
+    /** Places the given card into the discard pile and then removes it from the given player's hand
+     * @param index - an int variable containing the index of the card to be discarded
+     * @param player - a Player variable of the player who is discarding the card
      * 
-     * Postcondition: discardedCard will be added to the bottom ArrayList<Card> variable discardPile. 
+     * Postcondition: the card in the hand corresponding to the index will be added to the bottom of the 
+     * ArrayList<Card> variable discardPile. Player's hand will lose the discarded card.
      */
-    public static void discard(Card discardedCard) {
-        discardPile.add(discardedCard);
+    public static void discard(int index, Player player) {
+        discardPile.add(player.playCard(index));
     }
 
     /** Returns the ArrayList<Card> variable discardPile.
@@ -118,7 +133,7 @@ public class Frame {
     public static void returnDiscard() {
         deck.addAll(discardPile);
         shuffle();
-        discardPile = new ArrayList<>();
+        discardPile = new ArrayList<>(); //Resets the discardPile
     }
 }
 
