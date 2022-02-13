@@ -1,5 +1,4 @@
 import java.util.Scanner;
-import java.lang.invoke.CallSite;
 import java.util.ArrayList;
 
 /** Contains the game itself, including a player-addition system, a turn-based player rotation, and player actions */
@@ -7,6 +6,7 @@ public class Game {
 
     private static ArrayList<Player> playerList = new ArrayList<>(); // Contains all the players
     private static Scanner input = new Scanner(System.in); // Reads player input
+
     public static void main(String[] args)
     {
         System.out.println("Welcome to the game!");
@@ -24,10 +24,15 @@ public class Game {
      * @param ind - The index of the starting player in the playerList variable
      * 
      * Precondition - playerList has at least one Player and 0 <= ind < playerList.length()
+     * 
+     * Currently contains a template of different actions that could be taken, so there is no
+     * end goal or way to break out of the game cycle loop.
      */
     public static void gameCycle(int ind) {
         Player currentPlayer = playerList.get(ind);
         int x;
+        int c = 1; //Direction of play: 1 means rightwards on the list, -1 means leftwards
+        boolean actionDone = false; //Will indicate if a player's action has completed.
 
         //Make a new deck, shuffle it, then deal 7 cards to each player
         Frame.newDeck();
@@ -40,36 +45,52 @@ public class Game {
             System.out.println("Your current hand is: " + currentPlayer.getHand());
 
             //Ask for an action, requiring int inputs.
-            System.out.println("Actions: 1. Draw a card. 2. Discard a card");
-            while(true) { //Will loop if an invalid value is input
+            System.out.println("Actions: 1. Draw a card. 2. Discard a card 3. Draw a card from the discard pile");
+            while(actionDone == false) { //Will loop if an invalid value is input
                 x = input.nextInt();
                 if(x == 1) {
                     // Draws a card and prints the card out
                     System.out.println("The cards you drew were: " + Frame.draw(1, currentPlayer));
-                    break;
+                    actionDone = true;
                 } else if (x == 2) {
                     //Discards a chosen card
-                    Frame.discard(chooseCard(currentPlayer), currentPlayer);
-                    break;
+                    try {
+                        Frame.discard(chooseCard(currentPlayer), currentPlayer);
+                        actionDone = true;
+                    } catch (Exception e) { 
+                        /* If the action is cancelled, an invalid index will be written, which will not update
+                        the actionDone variable causing the option select to loop again */
+                        System.out.println("Returning to option select ...\n");
+                        System.out.println("Your current hand is: " + currentPlayer.getHand());
+                        System.out.println("Actions: 1. Draw a card. 2. Discard a card 3. Draw a card from the discard pile");
+                    }
+                } else if (x == 3) {
+                    
+                } else {
+                    System.out.println("Invalid input");
                 }
-                System.out.println("Invalid input");
+            }
             //Reprints the new hand
             System.out.println("Your new hand is: " + currentPlayer.getHand());
             System.out.println();
 
             //Swap current player, moving across the ArrayList and looping back at the end
-            ind++;
+            ind += c;
             if(ind >= playerList.size()) {
                 ind = 0;
+            } else if (ind < 0) {
+                ind = playerList.size() - 1;
             }
             currentPlayer = playerList.get(ind);
+            actionDone = false;
         }
     }
 
     /** Asks the player to select a card from their hand, returning the selected card
      * 
      * @param player - Player variable of the player who is choosing the card.
-     * @return index - index of the chosen card in the player's hand
+     * @return index - index of the chosen card in the player's hand. Will return -1 
+     * if the action is cancelled
      * 
      * Precondition: player has been properly initialized, at least one card is in the player's hand
      * Postcondition: 1 Card variable found in the player's hand is returned
@@ -78,23 +99,40 @@ public class Game {
         String str;
         Card theCard;
         int index;
+        System.out.println("Your hand: " + addIndices(player.getHand()));
+        System.out.println("Which card would you like to choose? Input -1 to cancel this action");
         while(true) { // Will loop if the confirmation to choose the card is denied
-            System.out.println("Which card would you like to choose?");
             index = input.nextInt(); // 0 <= index < player.getHand.size()
-            
-            theCard = player.getHand().get(index); 
-            System.out.println("Do you wish to choose the " + theCard + "? Y to agree, N to decline");
-            input.nextLine();
-            while(true) { // Will loop if an invalid String is input
-                str = input.nextLine();
-                if(str.equalsIgnoreCase("y")) {
-                    return(index);
-                } else if (str.equalsIgnoreCase("n")) {
-                    break; // Will cause the outer while loop to loop, restarting the card selection process
+            if(index == -1) { //Cancels the action
+                return -1;
+            }
+            try {
+                theCard = player.getHand().get(index); 
+                System.out.println("Do you wish to choose the " + theCard + "? Y to agree, N to decline");
+                input.nextLine();
+                while(true) { // Will loop if an invalid String is input
+                    str = input.nextLine();
+                    if(str.equalsIgnoreCase("y")) {
+                        return(index);
+                    } else if (str.equalsIgnoreCase("n")) {
+                        System.out.println("Your hand: " + addIndices(player.getHand()));
+                        System.out.println("Which card would you like to choose? Input -1 to cancel this action");
+                        break; // Will cause the outer while loop to loop, restarting the card selection process
+                    }
+                    System.out.println("Invalid response.");
                 }
-                System.out.println("Invalid response.");
+            } catch (Exception e) { //Will catch invalid inputs for the index
+                System.out.println("Invalid input");
             }
         }
+    }
+
+    public static ArrayList<String> addIndices(ArrayList<Card> arr) {
+        ArrayList<String> newArr = new ArrayList<>();
+        for(int i = 0; i < arr.size(); i++) {
+            newArr.add(i + ". " + arr.get(i));
+        }
+        return newArr;
     }
 
     /** Adds up to a maximum of 6 players to the ArrayList<Card> variable playerList, with the user

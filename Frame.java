@@ -5,7 +5,8 @@ public class Frame {
     
     private static ArrayList<Card> deck = new ArrayList<>();
     private static ArrayList<Card> discardPile = new ArrayList<>();
-    //Note: These decks remain inside the Frame class and are never returned outside except through hands.
+
+    //Note: These decks should remain in the Frame class and should not be altered outside of it.
     //The top of the deck is denoted by index 0
 
     /** Creates a new, unshuffled basic deck of 52 cards, 13 of each suit from ace to king, as well as one joker 
@@ -123,6 +124,18 @@ public class Frame {
      */
     public static ArrayList<Card> getDiscardPile() {
         return discardPile;
+    }
+
+    /** Takes the selected card from the discard pile and adds it to the given player's hand
+     * 
+     * @param index - an int variable with the index of the card to draw form the discardPile.
+     * @param player - a Player variable of the player who wishes to take a card
+     * 
+     * Precondition: 0 <= index < discardPile.length() and player has been properly initialized.
+     * Postcondition: The card of the selected index is moved to the hand of the given player.
+     */
+    public static void drawDiscard(int index, Player player) {
+        player.getHand().add(discardPile.remove(index));
     }
 
     /** Adds the discard pile to the main deck, and then reshuffles the main deck

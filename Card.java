@@ -4,6 +4,7 @@ public class Card {
     private int value; //0 if the card is a joker
     private String suit; //"joker" if the card is a joker
     private boolean joker; //true if the card is a joker
+    public boolean isRed; //true if red or joker, false if black
 
     /** Constructor for a normal card with a face value and a suit, taking in two parameters: an int and a String.
      * 
@@ -12,23 +13,30 @@ public class Card {
      * 
      * Precondition: 1 <= val <= 13 and st is either of "diamonds", "clubs", "hearts", "spades"
      * Postcondition: A Card object is initialied with a face value of val and a suit of st. the boolean variable
-     * joker is set to false.
+     * joker is set to false. If st is "diamonds" or "hearts", isRed is set to true. If st is "clubs" or "spades", 
+     * isRed is set to false.
      */
     public Card(int val, String st) { 
         value = val;
         suit = st;
         joker = false;
+        if(suit.equals("diamonds") || suit.equals("hearts")) {
+            isRed = true;
+        } else {
+            isRed = false;
+        }
     }
 
     /** Constructor for a joker, taking no parameters
      * 
      * Postcondition: A Card object is initialized with a face value of 0 and a suit of "joker". The boolean
-     * variable joker is set to true.
+     * variables joker and isRed are set to true.
      */
     public Card() {
         value = 0;
         suit = "Joker";
         joker = true;
+        isRed = true;
     }
 
     /** Returns whether the calling object matches the given object in either suit or value. Joker will always return true
@@ -40,7 +48,7 @@ public class Card {
      * Postcondition: A boolean is returned as true if the cards match in either suit or
      * value or if any card is a joker, false otherwise
      */
-    public boolean equals(Card other) {
+    public boolean equalsSuit(Card other) {
         if(this.isJoker() || other.isJoker()) { //Check if either card is a joker, return true if so
             return true;
         }
